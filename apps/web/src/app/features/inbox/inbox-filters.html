@@ -1,0 +1,34 @@
+<div class="filters">
+  <input
+    type="search"
+    class="search"
+    placeholder="Buscar telefono, nombre, ID..."
+    [value]="search"
+    (input)="onSearchInput($any($event.target).value)"
+    aria-label="Buscar conversaciones"
+  />
+  <div class="selects">
+    <select
+      [value]="status()"
+      (change)="onStatusChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Estado: todos</option>
+      <option value="ACTIVE">Activa</option>
+      <option value="PENDING_TIMEOUT">Por vencer</option>
+      <option value="CLOSED">Cerrada</option>
+      <option value="ERROR">Error</option>
+    </select>
+    <select
+      [value]="mode()"
+      (change)="onModeChange($any($event.target).value)"
+      aria-label="Filtrar por modo"
+    >
+      <option value="">Modo: todos</option>
+      <option value="AUTOMATIC">Automatico</option>
+      <option value="AGENT">Agente</option>
+      <option value="MANUAL">Manual</option>
+    </select>
+    <button type="button" class="reset" (click)="reset()">Limpiar</button>
+  </div>
+</div>

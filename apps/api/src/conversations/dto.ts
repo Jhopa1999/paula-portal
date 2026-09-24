@@ -124,4 +124,8 @@ export class ListConversationsDto {
   @IsInt()
   @Min(1)
   limit?: number;
+
+  @IsOptional()
+  @IsIn(['mine', 'unassigned', 'all', 'closed'])
+  view?: 'mine' | 'unassigned' | 'all' | 'closed';
 }

@@ -8,7 +8,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Roles } from '../auth/decorators';
+import type { AuthenticatedUser, InboxView } from '@paula/contracts';
+import { Roles, CurrentUser } from '../auth/decorators';
 import { ConversationsService } from './conversations.service';
 import {
   AssignConversationDto,
@@ -25,13 +26,23 @@ export class ConversationsController {
   constructor(private readonly service: ConversationsService) {}
 
   @Get()
-  list(@Query() query: ListConversationsDto) {
-    return this.service.list(query);
+  list(
+    @Query() query: ListConversationsDto,
+    @Query('view') view: InboxView | undefined,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    // El segmento 'mine' se resuelve con la identidad autenticada.
+    const resolved =
+      view === 'mine' ? this.service.resolveMineQuery(query, user) : query;
+    return this.service.list(resolved);
   }
 
   @Get(':sessionId')
-  get(@Param('sessionId') sessionId: string) {
-    return this.service.get(sessionId);
+  get(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.service.get(sessionId, user);
   }
 
   @Get(':sessionId/messages')
@@ -48,8 +59,12 @@ export class ConversationsController {
   }
 
   @Post(':sessionId/take')
-  take(@Param('sessionId') sessionId: string, @Body() dto: TakeConversationDto) {
-    return this.service.take(sessionId, dto);
+  take(
+    @Param('sessionId') sessionId: string,
+    @Body() dto: TakeConversationDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.service.take(sessionId, dto, user);
   }
 
   @Put(':sessionId/assignment')
@@ -57,8 +72,9 @@ export class ConversationsController {
   assign(
     @Param('sessionId') sessionId: string,
     @Body() dto: AssignConversationDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.assign(sessionId, dto);
+    return this.service.assign(sessionId, dto, user);
   }
 
   @Post(':sessionId/messages')
@@ -73,15 +89,17 @@ export class ConversationsController {
   changeMode(
     @Param('sessionId') sessionId: string,
     @Body() dto: ChangeModeDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.changeMode(sessionId, dto);
+    return this.service.changeMode(sessionId, dto, user);
   }
 
   @Post(':sessionId/close')
   close(
     @Param('sessionId') sessionId: string,
     @Body() dto: CloseConversationDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.close(sessionId, dto);
+    return this.service.close(sessionId, dto, user);
   }
 }

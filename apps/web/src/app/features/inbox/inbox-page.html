@@ -6,15 +6,17 @@
       <span class="view-tag">{{ view() }}</span>
     </div>
 
+    <app-inbox-filters (filtersChange)="onFiltersChange($event)" />
+
     @if (loading()) {
       <p class="state">Cargando...</p>
     } @else if (error()) {
       <p class="state error">{{ error() }}</p>
-    } @else if (conversations().length === 0) {
+    } @else if (visibleItems().length === 0) {
       <p class="state">No hay conversaciones en esta vista.</p>
     } @else {
       <ul class="conv-list">
-        @for (c of conversations(); track c.sessionId) {
+        @for (c of visibleItems(); track c.sessionId) {
           <li
             class="conv-item"
             [class.selected]="c.sessionId === selectedId()"
@@ -34,8 +36,11 @@
               <span class="preview">{{ c.lastMessage?.preview || 'Sin mensajes' }}</span>
             </div>
             <div class="row3">
-              <span class="chip status">{{ c.status }}</span>
-              <span class="chip mode">{{ c.mode }}</span>
+              <span class="chip status">{{ statusLabel(c.status) }}</span>
+              <span class="chip mode">{{ modeLabel(c.mode) }}</span>
+              @if (c.flow) {
+                <span class="chip flow">{{ flowLabel(c.flow) }}</span>
+              }
               @if (c.assignedTo) {
                 <span class="chip assignee">{{ c.assignedTo.name }}</span>
               } @else {
@@ -45,6 +50,12 @@
           </li>
         }
       </ul>
+
+      @if (nextCursor()) {
+        <button class="load-more" (click)="loadMore()" [disabled]="loadingMore()">
+          {{ loadingMore() ? 'Cargando...' : 'Cargar mas' }}
+        </button>
+      }
     }
   </section>
 
@@ -60,11 +71,7 @@
 
   <!-- Columna 3: Detalle -->
   <aside class="col detalle" aria-label="Detalle de contacto y sesion">
-    @if (selectedId()) {
-      <div class="col-header"><h2>Detalle</h2></div>
-      <p class="state">El detalle se implementa en la feature 05-session-detail.</p>
-    } @else {
-      <p class="state placeholder">Sin seleccion.</p>
-    }
+    <div class="col-header"><h2>Detalle</h2></div>
+    <app-session-detail [sessionId]="selectedId()" />
   </aside>
 </div>

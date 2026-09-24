@@ -5,10 +5,16 @@ import type {
   ConversationDetail,
   ConversationMessage,
   ConversationSummary,
+  InboxView,
   ListConversationsQuery,
 } from '@paula/contracts';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, PaginatedEnvelope } from '../http/api.types';
+
+export interface ConversationPage {
+  items: ConversationSummary[];
+  nextCursor?: string;
+}
 
 /**
  * Cliente HTTP de conversaciones hacia la Web API (NestJS).
@@ -19,8 +25,11 @@ export class ConversationsApi {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiBaseUrl}/conversations`;
 
-  list(query: ListConversationsQuery = {}): Observable<ConversationSummary[]> {
-    let params = new HttpParams();
+  list(
+    view: InboxView,
+    query: ListConversationsQuery = {},
+  ): Observable<ConversationPage> {
+    let params = new HttpParams().set('view', view);
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined && value !== null && value !== '') {
         params = params.set(key, String(value));
@@ -28,7 +37,12 @@ export class ConversationsApi {
     }
     return this.http
       .get<PaginatedEnvelope<ConversationSummary>>(this.base, { params })
-      .pipe(map((res) => res.data));
+      .pipe(
+        map((res) => ({
+          items: res.data,
+          nextCursor: res.pagination.nextCursor,
+        })),
+      );
   }
 
   get(sessionId: string): Observable<ConversationDetail> {

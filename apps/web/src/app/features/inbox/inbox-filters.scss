@@ -1,0 +1,47 @@
+.filters {
+  padding: 0.5rem 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.search {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.85rem;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+}
+
+.selects {
+  display: flex;
+  gap: 0.4rem;
+
+  select {
+    flex: 1;
+    padding: 0.35rem 0.4rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    background: #fff;
+  }
+
+  .reset {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+
+    &:hover {
+      background: #eef2f7;
+    }
+  }
+}

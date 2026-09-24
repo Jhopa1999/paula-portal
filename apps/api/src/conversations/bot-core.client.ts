@@ -7,6 +7,7 @@ import type {
   TakeConversationCommand,
   AssignConversationCommand,
   SendMessageCommand,
+  AddNoteCommand,
   ChangeModeCommand,
   CloseConversationCommand,
 } from '@paula/contracts';
@@ -42,6 +43,12 @@ export interface BotCoreClient {
   sendManualMessage(
     sessionId: string,
     command: SendMessageCommand,
+  ): Promise<ConversationMessage>;
+
+  addNote(
+    sessionId: string,
+    command: AddNoteCommand,
+    author: { id: string; name: string },
   ): Promise<ConversationMessage>;
 
   changeMode(

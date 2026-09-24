@@ -1,0 +1,85 @@
+@if (!sessionId()) {
+  <p class="state placeholder">Sin seleccion.</p>
+} @else if (loading()) {
+  <p class="state">Cargando detalle...</p>
+} @else if (error()) {
+  <p class="state error">{{ error() }}</p>
+} @else if (detail(); as d) {
+  <div class="detail">
+    <!-- Contacto -->
+    <section class="block">
+      <h3>Contacto</h3>
+      <dl>
+        <dt>Nombre</dt>
+        <dd>{{ d.contact?.name || d.contactName || '—' }}</dd>
+        <dt>Telefono</dt>
+        <dd>
+          {{ d.contact?.phone || d.phone }}
+          <button class="copy" (click)="copy(d.contact?.phone || d.phone)">copiar</button>
+        </dd>
+        @if (d.contact?.identification) {
+          <dt>Identificacion</dt>
+          <dd>{{ d.contact?.identification }}</dd>
+        }
+      </dl>
+    </section>
+
+    <!-- Tercero de la sesion -->
+    @if (d.thirdPartyId || d.thirdPartyName) {
+      <section class="block">
+        <h3>Tercero de esta sesion</h3>
+        <dl>
+          <dt>NIT</dt>
+          <dd>{{ d.thirdPartyId || '—' }}</dd>
+          <dt>Nombre</dt>
+          <dd>{{ d.thirdPartyName || '—' }}</dd>
+        </dl>
+      </section>
+    }
+
+    <!-- Sesion -->
+    <section class="block">
+      <h3>Conversacion</h3>
+      <dl>
+        <dt>Estado</dt>
+        <dd>{{ statusLabel(d.status) }}</dd>
+        <dt>Modo</dt>
+        <dd>{{ modeLabel(d.mode) }}</dd>
+        <dt>Flujo</dt>
+        <dd>{{ flowLabel(d.flow) }}</dd>
+        <dt>Asignado a</dt>
+        <dd>{{ d.assignedTo?.name || 'Sin asignar' }}</dd>
+        <dt>Inicio</dt>
+        <dd>{{ formatLocal(d.session.createdAt) }}</dd>
+        <dt>Ultima actividad</dt>
+        <dd>{{ formatLocal(d.session.lastActivityAt) }}</dd>
+        <dt>Mensajes</dt>
+        <dd>{{ d.session.messageCount }}</dd>
+        @if (d.session.closedAt) {
+          <dt>Cierre</dt>
+          <dd>{{ formatLocal(d.session.closedAt) }} ({{ d.session.closeReason }})</dd>
+        }
+      </dl>
+    </section>
+
+    <!-- Seccion tecnica: solo supervisor/admin -->
+    @if (d.capabilities.canViewTechnical) {
+      <section class="block technical">
+        <h3>Detalle tecnico</h3>
+        <dl>
+          <dt>Session ID</dt>
+          <dd>
+            {{ d.sessionId }}
+            <button class="copy" (click)="copy(d.sessionId)">copiar</button>
+          </dd>
+          <dt>Version</dt>
+          <dd>{{ d.session.version }}</dd>
+        </dl>
+      </section>
+    }
+
+    @if (copied()) {
+      <p class="copied-toast">Copiado</p>
+    }
+  </div>
+}
