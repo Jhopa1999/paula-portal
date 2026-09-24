@@ -12,6 +12,7 @@ import type { AuthenticatedUser, InboxView } from '@paula/contracts';
 import { Roles, CurrentUser } from '../auth/decorators';
 import { ConversationsService } from './conversations.service';
 import {
+  AddNoteDto,
   AssignConversationDto,
   ChangeModeDto,
   CloseConversationDto,
@@ -58,6 +59,12 @@ export class ConversationsController {
     );
   }
 
+  @Get(':sessionId/audit')
+  @Roles('PAULA_SUPERVISOR', 'PAULA_ADMIN')
+  getAudit(@Param('sessionId') sessionId: string) {
+    return this.service.getAudit(sessionId);
+  }
+
   @Post(':sessionId/take')
   take(
     @Param('sessionId') sessionId: string,
@@ -81,8 +88,18 @@ export class ConversationsController {
   sendMessage(
     @Param('sessionId') sessionId: string,
     @Body() dto: SendMessageDto,
+    @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.service.sendMessage(sessionId, dto);
+    return this.service.sendMessage(sessionId, dto, user);
+  }
+
+  @Post(':sessionId/notes')
+  addNote(
+    @Param('sessionId') sessionId: string,
+    @Body() dto: AddNoteDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.service.addNote(sessionId, dto, user);
   }
 
   @Put(':sessionId/mode')

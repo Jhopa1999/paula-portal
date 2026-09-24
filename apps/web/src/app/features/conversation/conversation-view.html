@@ -1,0 +1,101 @@
+@if (!sessionId()) {
+  <p class="state placeholder">Seleccione una conversacion.</p>
+} @else if (loading()) {
+  <p class="state">Cargando conversacion...</p>
+} @else if (error()) {
+  <p class="state error">{{ error() }}</p>
+} @else if (detail(); as d) {
+  <div class="conversation">
+    <!-- Header + acciones -->
+    <header class="conv-head">
+      <div class="titles">
+        <span class="title">{{ d.contactName || d.phone }}</span>
+        <span class="badges">
+          <span class="chip status">{{ statusLabel(d.status) }}</span>
+          <span class="chip mode">{{ modeLabel(d.mode) }}</span>
+          <span class="chip who">
+            {{ d.assignedTo?.name || 'Sin asignar' }}
+          </span>
+        </span>
+      </div>
+      <div class="actions">
+        @if (d.capabilities.canTake) {
+          <button (click)="take()" [disabled]="busy()">Tomar</button>
+        }
+        @if (d.capabilities.canChangeMode && d.mode === 'MANUAL') {
+          <button (click)="returnToAgent()" [disabled]="busy()">Devolver a Paula</button>
+        }
+        @if (d.capabilities.canClose) {
+          <button class="danger" (click)="close()" [disabled]="busy()">Cerrar</button>
+        }
+      </div>
+    </header>
+
+    @if (actionError()) {
+      <p class="action-error">{{ actionError() }}</p>
+    }
+
+    <!-- Mensajes -->
+    <div class="messages">
+      @if (messages().length === 0) {
+        <p class="state">Sin mensajes en esta conversacion.</p>
+      }
+      @for (m of messages(); track m.messageId) {
+        @if (m.type === 'system_event') {
+          <div class="system-event">{{ m.content }}</div>
+        } @else if (m.type === 'internal_note') {
+          <div class="note">
+            <span class="note-tag">Nota interna</span>
+            <span class="note-content">{{ m.content }}</span>
+            <span class="meta">{{ m.author?.name }} · {{ formatLocal(m.createdAt) }}</span>
+          </div>
+        } @else {
+          <div
+            class="bubble"
+            [class.inbound]="m.role === 'user'"
+            [class.outbound]="m.role === 'advisor' || m.role === 'assistant'"
+            [class.system]="m.role === 'system'"
+          >
+            <div class="author">
+              {{ m.role === 'user' ? (d.contactName || 'Contacto')
+                : m.role === 'assistant' ? 'Paula'
+                : m.role === 'advisor' ? (m.author?.name || 'Asesor')
+                : 'Sistema' }}
+            </div>
+            <div class="content">{{ m.content }}</div>
+            <div class="meta">
+              {{ formatLocal(m.createdAt) }}
+              @if (m.pending) { · enviando... }
+              @else if (m.failed) {
+                · <span class="failed">fallido</span>
+                <button class="retry" (click)="retry(m)">reintentar</button>
+              }
+              @else if (m.deliveryStatus) { · {{ m.deliveryStatus }} }
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Composer -->
+    <footer class="composer">
+      @if (d.status === 'CLOSED') {
+        <p class="composer-disabled">Conversacion cerrada (solo lectura).</p>
+      } @else if (!d.capabilities.canSendMessage) {
+        <p class="composer-disabled">
+          Para responder, tome la conversacion y asegurese de que este en modo Manual.
+        </p>
+      } @else {
+        <textarea
+          [(ngModel)]="draft"
+          placeholder="Escriba un mensaje..."
+          rows="2"
+          (keydown.control.enter)="send()"
+        ></textarea>
+        <button class="send" (click)="send()" [disabled]="!draft.trim()">
+          Enviar
+        </button>
+      }
+    </footer>
+  </div>
+}

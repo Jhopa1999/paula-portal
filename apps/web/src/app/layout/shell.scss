@@ -54,6 +54,33 @@
     color: #cbd5e1;
   }
 
+  .conn {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+
+    &::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    &.on {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      &::before { background: #22c55e; }
+    }
+    &.off {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      &::before { background: #f59e0b; }
+    }
+  }
+
   .logout {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.25);

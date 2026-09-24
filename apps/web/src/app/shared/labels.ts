@@ -42,3 +42,20 @@ export function formatLocal(iso?: string): string {
   if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleString();
 }
+
+/** Etiqueta amigable para una accion de auditoria. */
+export function auditActionLabel(action: string): string {
+  const map: Record<string, string> = {
+    SESSION_CREATED: 'Sesion creada',
+    CONVERSATION_TAKEN: 'Conversacion tomada',
+    ASSIGNED: 'Asignada',
+    REASSIGNED: 'Reasignada',
+    MODE_CHANGED: 'Cambio de modo',
+    HANDOFF_REQUESTED: 'Handoff solicitado',
+    MESSAGE_SENT: 'Mensaje enviado',
+    SESSION_CLOSED: 'Sesion cerrada',
+    TIMEOUT_WARNING_SENT: 'Aviso de inactividad',
+    SESSION_ERROR: 'Error de sesion',
+  };
+  return map[action] ?? action;
+}

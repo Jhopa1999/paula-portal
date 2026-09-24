@@ -7,6 +7,11 @@ import type {
   ConversationSummary,
   InboxView,
   ListConversationsQuery,
+  ChangeModeCommand,
+  CloseConversationCommand,
+  SendMessageCommand,
+  TakeConversationCommand,
+  AuditEvent,
 } from '@paula/contracts';
 import { environment } from '../../../environments/environment';
 import { ApiEnvelope, PaginatedEnvelope } from '../http/api.types';
@@ -57,6 +62,60 @@ export class ConversationsApi {
     return this.http
       .get<PaginatedEnvelope<ConversationMessage>>(
         `${this.base}/${encodeURIComponent(sessionId)}/messages`,
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  getAudit(sessionId: string): Observable<AuditEvent[]> {
+    return this.http
+      .get<PaginatedEnvelope<AuditEvent>>(
+        `${this.base}/${encodeURIComponent(sessionId)}/audit`,
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  private url(sessionId: string, path: string): string {
+    return `${this.base}/${encodeURIComponent(sessionId)}/${path}`;
+  }
+
+  take(
+    sessionId: string,
+    command: TakeConversationCommand,
+  ): Observable<ConversationDetail> {
+    return this.http
+      .post<ApiEnvelope<ConversationDetail>>(this.url(sessionId, 'take'), command)
+      .pipe(map((res) => res.data));
+  }
+
+  sendMessage(
+    sessionId: string,
+    command: SendMessageCommand,
+  ): Observable<ConversationMessage> {
+    return this.http
+      .post<ApiEnvelope<ConversationMessage>>(
+        this.url(sessionId, 'messages'),
+        command,
+      )
+      .pipe(map((res) => res.data));
+  }
+
+  changeMode(
+    sessionId: string,
+    command: ChangeModeCommand,
+  ): Observable<ConversationDetail> {
+    return this.http
+      .put<ApiEnvelope<ConversationDetail>>(this.url(sessionId, 'mode'), command)
+      .pipe(map((res) => res.data));
+  }
+
+  close(
+    sessionId: string,
+    command: CloseConversationCommand,
+  ): Observable<ConversationDetail> {
+    return this.http
+      .post<ApiEnvelope<ConversationDetail>>(
+        this.url(sessionId, 'close'),
+        command,
       )
       .pipe(map((res) => res.data));
   }

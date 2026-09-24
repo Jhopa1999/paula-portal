@@ -129,3 +129,13 @@ export class ListConversationsDto {
   @IsIn(['mine', 'unassigned', 'all', 'closed'])
   view?: 'mine' | 'unassigned' | 'all' | 'closed';
 }
+
+export class AddNoteDto {
+  @IsString()
+  @IsNotEmpty()
+  clientMessageId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  content!: string;
+}

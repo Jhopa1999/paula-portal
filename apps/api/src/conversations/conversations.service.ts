@@ -7,9 +7,12 @@ import type {
   ConversationSummary,
   ListConversationsQuery,
   PaginatedResponse,
+  AuditEvent,
 } from '@paula/contracts';
 import { BOT_CORE_CLIENT, BotCoreClient } from './bot-core.client';
+import { RealtimeDispatcher } from '../realtime/realtime.dispatcher';
 import {
+  AddNoteDto,
   AssignConversationDto,
   ChangeModeDto,
   CloseConversationDto,
@@ -26,6 +29,7 @@ import {
 export class ConversationsService {
   constructor(
     @Inject(BOT_CORE_CLIENT) private readonly botCore: BotCoreClient,
+    private readonly realtime: RealtimeDispatcher,
   ) {}
 
   list(
@@ -51,13 +55,26 @@ export class ConversationsService {
     return this.botCore.getMessages(sessionId, before, limit);
   }
 
+  getAudit(
+    sessionId: string,
+  ): Promise<Omit<PaginatedResponse<AuditEvent>, 'meta'>> {
+    return this.botCore.getAudit(sessionId);
+  }
+
   async take(
     sessionId: string,
     dto: TakeConversationDto,
     user: AuthenticatedUser,
   ): Promise<ConversationDetail> {
-    const detail = await this.botCore.takeConversation(sessionId, dto);
+    const detail = await this.botCore.takeConversation(sessionId, dto, {
+      id: user.id,
+      name: user.name,
+    });
     detail.capabilities = this.computeCapabilities(detail, user);
+    this.realtime.emit('conversation.assigned', detail, {
+      sessionId,
+      aggregateVersion: detail.version,
+    });
     return detail;
   }
 
@@ -68,14 +85,35 @@ export class ConversationsService {
   ): Promise<ConversationDetail> {
     const detail = await this.botCore.assignConversation(sessionId, dto);
     detail.capabilities = this.computeCapabilities(detail, user);
+    this.realtime.emit('conversation.assigned', detail, {
+      sessionId,
+      aggregateVersion: detail.version,
+    });
     return detail;
   }
 
-  sendMessage(
+  async sendMessage(
     sessionId: string,
     dto: SendMessageDto,
+    user: AuthenticatedUser,
   ): Promise<ConversationMessage> {
-    return this.botCore.sendManualMessage(sessionId, dto);
+    const message = await this.botCore.sendManualMessage(sessionId, dto, {
+      id: user.id,
+      name: user.name,
+    });
+    this.realtime.emit('message.created', message, { sessionId });
+    return message;
+  }
+
+  addNote(
+    sessionId: string,
+    dto: AddNoteDto,
+    user: AuthenticatedUser,
+  ): Promise<ConversationMessage> {
+    return this.botCore.addNote(sessionId, dto, {
+      id: user.id,
+      name: user.name,
+    });
   }
 
   async changeMode(
@@ -85,6 +123,10 @@ export class ConversationsService {
   ): Promise<ConversationDetail> {
     const detail = await this.botCore.changeMode(sessionId, dto);
     detail.capabilities = this.computeCapabilities(detail, user);
+    this.realtime.emit('session.mode_changed', detail, {
+      sessionId,
+      aggregateVersion: detail.version,
+    });
     return detail;
   }
 
@@ -95,6 +137,10 @@ export class ConversationsService {
   ): Promise<ConversationDetail> {
     const detail = await this.botCore.closeConversation(sessionId, dto);
     detail.capabilities = this.computeCapabilities(detail, user);
+    this.realtime.emit('conversation.closed', detail, {
+      sessionId,
+      aggregateVersion: detail.version,
+    });
     return detail;
   }
 

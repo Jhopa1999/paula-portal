@@ -61,12 +61,10 @@
 
   <!-- Columna 2: Conversacion -->
   <section class="col chat" aria-label="Conversacion">
-    @if (selectedId()) {
-      <div class="col-header"><h2>{{ selectedId() }}</h2></div>
-      <p class="state">El chat se implementa en la feature 03-chat.</p>
-    } @else {
-      <p class="state placeholder">Seleccione una conversacion.</p>
-    }
+    <app-conversation-view
+      [sessionId]="selectedId()"
+      (changed)="onConversationChanged($event)"
+    />
   </section>
 
   <!-- Columna 3: Detalle -->

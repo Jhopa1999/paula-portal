@@ -10,6 +10,7 @@ import type {
   AddNoteCommand,
   ChangeModeCommand,
   CloseConversationCommand,
+  AuditEvent,
 } from '@paula/contracts';
 
 /**
@@ -30,9 +31,14 @@ export interface BotCoreClient {
     limit?: number,
   ): Promise<Omit<PaginatedResponse<ConversationMessage>, 'meta'>>;
 
+  getAudit(
+    sessionId: string,
+  ): Promise<Omit<PaginatedResponse<AuditEvent>, 'meta'>>;
+
   takeConversation(
     sessionId: string,
     command: TakeConversationCommand,
+    actor: { id: string; name: string },
   ): Promise<ConversationDetail>;
 
   assignConversation(
@@ -43,6 +49,7 @@ export interface BotCoreClient {
   sendManualMessage(
     sessionId: string,
     command: SendMessageCommand,
+    actor: { id: string; name: string },
   ): Promise<ConversationMessage>;
 
   addNote(

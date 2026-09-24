@@ -76,6 +76,26 @@
           <dd>{{ d.session.version }}</dd>
         </dl>
       </section>
+
+      <!-- Auditoria: timeline de acciones -->
+      <section class="block technical">
+        <h3>Auditoria</h3>
+        @if (audit().length === 0) {
+          <p class="audit-empty">Sin eventos registrados.</p>
+        } @else {
+          <ul class="timeline">
+            @for (e of audit(); track e.eventId) {
+              <li class="timeline-item">
+                <span class="time">{{ formatLocal(e.occurredAt) }}</span>
+                <span class="action">{{ auditActionLabel(e.action) }}</span>
+                <span class="actor">
+                  {{ e.actor.name || e.actor.type }}
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
     }
 
     @if (copied()) {

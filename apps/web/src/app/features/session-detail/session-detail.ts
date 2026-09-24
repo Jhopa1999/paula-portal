@@ -1,8 +1,14 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
-import type { ConversationDetail } from '@paula/contracts';
+import type { AuditEvent, ConversationDetail } from '@paula/contracts';
 import { ConversationsApi } from '../../core/api/conversations.api';
 import { NormalizedError } from '../../core/http/api.types';
-import { flowLabel, formatLocal, modeLabel, statusLabel } from '../../shared/labels';
+import {
+  auditActionLabel,
+  flowLabel,
+  formatLocal,
+  modeLabel,
+  statusLabel,
+} from '../../shared/labels';
 
 /**
  * Panel derecho: detalle de contacto y sesion (feature 05).
@@ -21,6 +27,7 @@ export class SessionDetail {
   readonly sessionId = input<string | null>(null);
 
   protected readonly detail = signal<ConversationDetail | null>(null);
+  protected readonly audit = signal<AuditEvent[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly copied = signal<string | null>(null);
@@ -29,6 +36,7 @@ export class SessionDetail {
   protected readonly statusLabel = statusLabel;
   protected readonly modeLabel = modeLabel;
   protected readonly formatLocal = formatLocal;
+  protected readonly auditActionLabel = auditActionLabel;
 
   constructor() {
     effect(() => {
@@ -51,15 +59,27 @@ export class SessionDetail {
   private load(sessionId: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.audit.set([]);
     this.api.get(sessionId).subscribe({
       next: (d) => {
         this.detail.set(d);
         this.loading.set(false);
+        // El timeline solo se pide si el rol lo permite (evita un 403 esperado).
+        if (d.capabilities.canViewTechnical) {
+          this.loadAudit(sessionId);
+        }
       },
       error: (err: NormalizedError) => {
         this.error.set(err.message);
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadAudit(sessionId: string): void {
+    this.api.getAudit(sessionId).subscribe({
+      next: (events) => this.audit.set(events),
+      error: () => this.audit.set([]),
     });
   }
 }

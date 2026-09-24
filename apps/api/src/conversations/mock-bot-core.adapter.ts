@@ -8,9 +8,12 @@ import type {
   TakeConversationCommand,
   AssignConversationCommand,
   SendMessageCommand,
+  AddNoteCommand,
   ChangeModeCommand,
   CloseConversationCommand,
   ConversationCapabilities,
+  AuditEvent,
+  AuditAction,
 } from '@paula/contracts';
 import { v4 as uuidv4 } from 'uuid';
 import { BotCoreClient } from './bot-core.client';
@@ -35,9 +38,40 @@ const DEFAULT_CAPABILITIES: ConversationCapabilities = {
 export class MockBotCoreAdapter implements BotCoreClient {
   private readonly conversations = new Map<string, ConversationDetail>();
   private readonly messages = new Map<string, ConversationMessage[]>();
+  private readonly audit = new Map<string, AuditEvent[]>();
 
   constructor() {
     this.seed();
+  }
+
+  async getAudit(
+    sessionId: string,
+  ): Promise<Omit<PaginatedResponse<AuditEvent>, 'meta'>> {
+    await this.getConversation(sessionId);
+    const list = [...(this.audit.get(sessionId) ?? [])].sort((a, b) =>
+      a.occurredAt.localeCompare(b.occurredAt),
+    );
+    return { data: list, pagination: {} };
+  }
+
+  private recordAudit(
+    sessionId: string,
+    action: AuditAction,
+    actor: AuditEvent['actor'],
+    diff?: { before?: Record<string, unknown>; after?: Record<string, unknown> },
+  ): void {
+    const event: AuditEvent = {
+      eventId: `EVT#${uuidv4()}`,
+      sessionId,
+      action,
+      actor,
+      occurredAt: new Date().toISOString(),
+      before: diff?.before,
+      after: diff?.after,
+    };
+    const list = this.audit.get(sessionId) ?? [];
+    list.push(event);
+    this.audit.set(sessionId, list);
   }
 
   async listConversations(
@@ -95,6 +129,7 @@ export class MockBotCoreAdapter implements BotCoreClient {
   async takeConversation(
     sessionId: string,
     command: TakeConversationCommand,
+    actor: { id: string; name: string },
   ): Promise<ConversationDetail> {
     const conv = await this.getConversation(sessionId);
     this.assertVersion(conv, command.expectedVersion);
@@ -105,9 +140,15 @@ export class MockBotCoreAdapter implements BotCoreClient {
         HttpStatus.CONFLICT,
       );
     }
-    conv.assignedTo = { id: 'usr-mock', name: 'Asesor Mock' };
+    conv.assignedTo = { id: actor.id, name: actor.name };
     conv.mode = 'MANUAL';
     this.bump(conv);
+    this.recordAudit(
+      sessionId,
+      'CONVERSATION_TAKEN',
+      { type: 'USER', id: actor.id, name: actor.name },
+      { after: { assignedTo: actor.id, mode: 'MANUAL' } },
+    );
     return conv;
   }
 
@@ -117,14 +158,22 @@ export class MockBotCoreAdapter implements BotCoreClient {
   ): Promise<ConversationDetail> {
     const conv = await this.getConversation(sessionId);
     this.assertVersion(conv, command.expectedVersion);
+    const previous = conv.assignedTo?.id;
     conv.assignedTo = { id: command.assigneeId, name: command.assigneeId };
     this.bump(conv);
+    this.recordAudit(
+      sessionId,
+      previous ? 'REASSIGNED' : 'ASSIGNED',
+      { type: 'SYSTEM' },
+      { before: { assignedTo: previous }, after: { assignedTo: command.assigneeId } },
+    );
     return conv;
   }
 
   async sendManualMessage(
     sessionId: string,
     command: SendMessageCommand,
+    actor: { id: string; name: string },
   ): Promise<ConversationMessage> {
     const conv = await this.getConversation(sessionId);
     if (conv.status === 'CLOSED') {
@@ -149,11 +198,16 @@ export class MockBotCoreAdapter implements BotCoreClient {
       content: command.content,
       createdAt: new Date().toISOString(),
       deliveryStatus: 'SENT',
-      author: conv.assignedTo ?? { id: 'usr-mock', name: 'Asesor Mock' },
+      author: actor,
     };
     const list = this.messages.get(sessionId) ?? [];
     list.push(message);
     this.messages.set(sessionId, list);
+    this.recordAudit(sessionId, 'MESSAGE_SENT', {
+      type: 'USER',
+      id: actor.id,
+      name: actor.name,
+    });
     conv.messageCount += 1;
     conv.session.messageCount = conv.messageCount;
     conv.lastActivityAt = message.createdAt;
@@ -167,14 +221,49 @@ export class MockBotCoreAdapter implements BotCoreClient {
     return message;
   }
 
+  async addNote(
+    sessionId: string,
+    command: AddNoteCommand,
+    author: { id: string; name: string },
+  ): Promise<ConversationMessage> {
+    const conv = await this.getConversation(sessionId);
+    if (conv.status === 'CLOSED') {
+      throw new DomainException(
+        'SESSION_CLOSED',
+        'La conversacion esta cerrada.',
+        HttpStatus.CONFLICT,
+      );
+    }
+    const note: ConversationMessage = {
+      messageId: `MSG#${uuidv4()}`,
+      sessionId,
+      role: 'advisor',
+      type: 'internal_note',
+      content: command.content,
+      createdAt: new Date().toISOString(),
+      author,
+    };
+    const list = this.messages.get(sessionId) ?? [];
+    list.push(note);
+    this.messages.set(sessionId, list);
+    return note;
+  }
+
   async changeMode(
     sessionId: string,
     command: ChangeModeCommand,
   ): Promise<ConversationDetail> {
     const conv = await this.getConversation(sessionId);
     this.assertVersion(conv, command.expectedVersion);
+    const previousMode = conv.mode;
     conv.mode = command.mode;
     this.bump(conv);
+    this.recordAudit(
+      sessionId,
+      'MODE_CHANGED',
+      { type: 'USER' },
+      { before: { mode: previousMode }, after: { mode: command.mode } },
+    );
     return conv;
   }
 
@@ -190,6 +279,12 @@ export class MockBotCoreAdapter implements BotCoreClient {
     conv.session.closedAt = conv.closedAt;
     conv.session.closeReason = 'MANUAL';
     this.bump(conv);
+    this.recordAudit(
+      sessionId,
+      'SESSION_CLOSED',
+      { type: 'USER' },
+      { after: { status: 'CLOSED', closeReason: 'MANUAL' } },
+    );
     return conv;
   }
 
@@ -380,6 +475,16 @@ export class MockBotCoreAdapter implements BotCoreClient {
         conv.session.closeReason = conv.closeReason;
       }
       this.conversations.set(conv.sessionId, conv);
+      // Evento inicial de auditoria para cada sesion sembrada.
+      this.audit.set(conv.sessionId, [
+        {
+          eventId: `EVT#${uuidv4()}`,
+          sessionId: conv.sessionId,
+          action: 'SESSION_CREATED',
+          actor: { type: 'SYSTEM' },
+          occurredAt: conv.createdAt,
+        },
+      ]);
     }
 
     this.messages.set('SES#MOCK0001', [

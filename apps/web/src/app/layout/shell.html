@@ -8,6 +8,14 @@
       <a routerLink="/app/inbox/closed" routerLinkActive="active">Cerradas</a>
     </nav>
     <div class="user-box">
+      <span
+        class="conn"
+        [class.on]="realtime.status() === 'connected'"
+        [class.off]="realtime.status() !== 'connected'"
+        [title]="'Realtime: ' + realtime.status()"
+      >
+        {{ realtime.status() === 'connected' ? 'En linea' : 'Reconectando...' }}
+      </span>
       <span class="user">{{ auth.user()?.name }}</span>
       <button type="button" class="logout" (click)="logout()">Salir</button>
     </div>
