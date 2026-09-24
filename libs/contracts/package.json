@@ -1,0 +1,25 @@
+{
+  "name": "@paula/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DTOs y contratos compartidos entre la Web (Angular) y la API (NestJS).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

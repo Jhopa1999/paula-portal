@@ -1,0 +1,23 @@
+{
+  "name": "paula-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portal Web operativo de Bot Paula (Angular + NestJS + libs/contracts).",
+  "workspaces": [
+    "libs/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:contracts": "npm run build --workspace @paula/contracts",
+    "build:api": "npm run build --workspace @paula/api",
+    "build:web": "npm run build --workspace @paula/web",
+    "build": "npm run build:contracts && npm run build:api && npm run build:web",
+    "start:api": "npm run start:dev --workspace @paula/api",
+    "start:web": "npm run start --workspace @paula/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  }
+}

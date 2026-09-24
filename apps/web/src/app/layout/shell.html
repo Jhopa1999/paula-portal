@@ -1,0 +1,16 @@
+<div class="shell">
+  <header class="topbar">
+    <span class="brand">Paula</span>
+    <nav class="views" aria-label="Vistas de bandeja">
+      <a routerLink="/app/inbox/mine" routerLinkActive="active">Mis conversaciones</a>
+      <a routerLink="/app/inbox/unassigned" routerLinkActive="active">Sin asignar</a>
+      <a routerLink="/app/inbox/all" routerLinkActive="active">Todas</a>
+      <a routerLink="/app/inbox/closed" routerLinkActive="active">Cerradas</a>
+    </nav>
+    <span class="user">Asesor Demo</span>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

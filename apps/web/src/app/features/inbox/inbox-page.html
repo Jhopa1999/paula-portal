@@ -1,0 +1,70 @@
+<div class="inbox-layout">
+  <!-- Columna 1: Bandeja -->
+  <section class="col bandeja" aria-label="Bandeja de conversaciones">
+    <div class="col-header">
+      <h2>Conversaciones</h2>
+      <span class="view-tag">{{ view() }}</span>
+    </div>
+
+    @if (loading()) {
+      <p class="state">Cargando...</p>
+    } @else if (error()) {
+      <p class="state error">{{ error() }}</p>
+    } @else if (conversations().length === 0) {
+      <p class="state">No hay conversaciones en esta vista.</p>
+    } @else {
+      <ul class="conv-list">
+        @for (c of conversations(); track c.sessionId) {
+          <li
+            class="conv-item"
+            [class.selected]="c.sessionId === selectedId()"
+            [class.unassigned]="!c.assignedTo"
+            (click)="select(c.sessionId)"
+            (keyup.enter)="select(c.sessionId)"
+            tabindex="0"
+            role="button"
+          >
+            <div class="row1">
+              <span class="name">{{ c.contactName || c.phone }}</span>
+              @if (c.unreadCount > 0) {
+                <span class="badge" aria-label="mensajes no leidos">{{ c.unreadCount }}</span>
+              }
+            </div>
+            <div class="row2">
+              <span class="preview">{{ c.lastMessage?.preview || 'Sin mensajes' }}</span>
+            </div>
+            <div class="row3">
+              <span class="chip status">{{ c.status }}</span>
+              <span class="chip mode">{{ c.mode }}</span>
+              @if (c.assignedTo) {
+                <span class="chip assignee">{{ c.assignedTo.name }}</span>
+              } @else {
+                <span class="chip free">Sin asignar</span>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <!-- Columna 2: Conversacion -->
+  <section class="col chat" aria-label="Conversacion">
+    @if (selectedId()) {
+      <div class="col-header"><h2>{{ selectedId() }}</h2></div>
+      <p class="state">El chat se implementa en la feature 03-chat.</p>
+    } @else {
+      <p class="state placeholder">Seleccione una conversacion.</p>
+    }
+  </section>
+
+  <!-- Columna 3: Detalle -->
+  <aside class="col detalle" aria-label="Detalle de contacto y sesion">
+    @if (selectedId()) {
+      <div class="col-header"><h2>Detalle</h2></div>
+      <p class="state">El detalle se implementa en la feature 05-session-detail.</p>
+    } @else {
+      <p class="state placeholder">Sin seleccion.</p>
+    }
+  </aside>
+</div>
