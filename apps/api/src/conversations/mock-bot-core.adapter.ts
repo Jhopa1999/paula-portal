@@ -193,6 +193,7 @@ export class MockBotCoreAdapter implements BotCoreClient {
     const message: ConversationMessage = {
       messageId: `MSG#${uuidv4()}`,
       sessionId,
+      clientMessageId: command.clientMessageId,
       role: 'advisor',
       type: 'text',
       content: command.content,

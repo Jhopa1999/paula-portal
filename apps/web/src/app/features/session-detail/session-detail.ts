@@ -1,7 +1,9 @@
 import { Component, effect, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AuditEvent, ConversationDetail } from '@paula/contracts';
 import { ConversationsApi } from '../../core/api/conversations.api';
 import { NormalizedError } from '../../core/http/api.types';
+import { RealtimeService } from '../../core/realtime/realtime.service';
 import {
   auditActionLabel,
   flowLabel,
@@ -22,6 +24,7 @@ import {
 })
 export class SessionDetail {
   private readonly api = inject(ConversationsApi);
+  private readonly realtime = inject(RealtimeService);
 
   /** sessionId seleccionado; si es null, el panel esta vacio. */
   readonly sessionId = input<string | null>(null);
@@ -45,6 +48,15 @@ export class SessionDetail {
         this.load(id);
       } else {
         this.detail.set(null);
+        this.audit.set([]);
+      }
+    });
+
+    // Refresca detalle + auditoria cuando llega un evento de esta sesion.
+    this.realtime.stream.pipe(takeUntilDestroyed()).subscribe((event) => {
+      const id = this.sessionId();
+      if (id && event.sessionId === id) {
+        this.load(id);
       }
     });
   }

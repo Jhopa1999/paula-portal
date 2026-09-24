@@ -21,6 +21,9 @@ export interface ConversationMessage {
   messageId: string;
   sessionId: string;
 
+  /** Id generado por la Web para idempotencia/reconciliacion optimista. */
+  clientMessageId?: string;
+
   role: MessageRole;
   type: MessageType;
 

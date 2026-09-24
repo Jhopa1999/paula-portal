@@ -83,8 +83,17 @@ export class ConversationView {
     if (event.type === 'message.created') {
       const msg = event.data as ConversationMessage;
       this.messages.update((list) => {
-        // Evita duplicar el eco de un mensaje ya presente.
-        if (list.some((m) => m.messageId === msg.messageId)) return list;
+        // Dedup por messageId (eco ya presente) o por clientMessageId
+        // (eco del propio mensaje optimista que ya reconciliamos).
+        const exists = list.some(
+          (m) =>
+            m.messageId === msg.messageId ||
+            (!!msg.clientMessageId && m.messageId === msg.clientMessageId) ||
+            (!!msg.clientMessageId &&
+              !!m.clientMessageId &&
+              m.clientMessageId === msg.clientMessageId),
+        );
+        if (exists) return list;
         return [...list, msg];
       });
       return;
@@ -146,6 +155,7 @@ export class ConversationView {
     const clientMessageId = uuid();
     const optimistic: UiMessage = {
       messageId: clientMessageId,
+      clientMessageId,
       sessionId: d.sessionId,
       role: 'advisor',
       type: 'text',
