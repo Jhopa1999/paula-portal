@@ -7,7 +7,10 @@
       <a routerLink="/app/inbox/all" routerLinkActive="active">Todas</a>
       <a routerLink="/app/inbox/closed" routerLinkActive="active">Cerradas</a>
     </nav>
-    <span class="user">Asesor Demo</span>
+    <div class="user-box">
+      <span class="user">{{ auth.user()?.name }}</span>
+      <button type="button" class="logout" (click)="logout()">Salir</button>
+    </div>
   </header>
 
   <main class="content">

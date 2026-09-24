@@ -26,6 +26,7 @@ export type ApiErrorCode =
   | 'INTEGRATION_UNAVAILABLE'
   | 'VALIDATION_ERROR'
   | 'UNAUTHORIZED'
+  | 'AUTHENTICATION_REQUIRED'
   | 'INTERNAL_ERROR';
 
 export interface ApiError {

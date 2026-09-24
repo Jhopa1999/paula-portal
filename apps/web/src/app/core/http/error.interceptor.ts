@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import type { ApiErrorResponse } from '@paula/contracts';
 import { NormalizedError } from './api.types';
+import { AuthService } from '../auth/auth.service';
 
 /**
  * Normaliza cualquier error HTTP a NormalizedError usando error.code.
@@ -11,13 +12,15 @@ import { NormalizedError } from './api.types';
  */
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const auth = inject(AuthService);
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
       const normalized = normalize(err);
 
       if (normalized.status === 401) {
-        // Sesion expirada / no autenticado -> se completara en 01-auth.
+        // Sesion expirada / no autenticado: limpia sesion y va a login.
+        auth.logout();
         void router.navigate(['/login']);
       }
 

@@ -8,6 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Roles } from '../auth/decorators';
 import { ConversationsService } from './conversations.service';
 import {
   AssignConversationDto,
@@ -52,6 +53,7 @@ export class ConversationsController {
   }
 
   @Put(':sessionId/assignment')
+  @Roles('PAULA_SUPERVISOR', 'PAULA_ADMIN')
   assign(
     @Param('sessionId') sessionId: string,
     @Body() dto: AssignConversationDto,

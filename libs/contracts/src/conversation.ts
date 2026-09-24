@@ -50,9 +50,41 @@ export interface ConversationSummary {
   version: number;
 }
 
+/** Datos del contacto embebidos en el detalle. */
+export interface ConversationContactInfo {
+  name?: string;
+  phone: string;
+  identification?: string;
+}
+
+/** Datos de la sesion para el panel de detalle. */
+export interface ConversationSessionInfo {
+  createdAt: string;
+  lastActivityAt: string;
+  warningSentAt?: string;
+  closedAt?: string;
+  closeReason?: CloseReason;
+  messageCount: number;
+  version: number;
+}
+
 /**
- * Detalle completo de una conversacion/sesion.
- * Corresponde al DTO ConversationDetail del design 00-foundation.
+ * Capacidades del usuario sobre la conversacion, calculadas por el backend
+ * segun rol y estado. La UI las usa para mostrar/ocultar acciones, pero el
+ * backend siempre revalida (ocultar un boton no es seguridad).
+ */
+export interface ConversationCapabilities {
+  canTake: boolean;
+  canSendMessage: boolean;
+  canAssign: boolean;
+  canChangeMode: boolean;
+  canClose: boolean;
+  canViewTechnical: boolean;
+}
+
+/**
+ * Detalle completo de una conversacion/sesion (agregado).
+ * Corresponde al DTO ConversationDetail de los designs 00-foundation y 05.
  */
 export interface ConversationDetail extends ConversationSummary {
   warningSentAt?: string;
@@ -60,4 +92,8 @@ export interface ConversationDetail extends ConversationSummary {
   closeReason?: CloseReason;
   messageCount: number;
   updatedAt: string;
+
+  contact?: ConversationContactInfo;
+  session: ConversationSessionInfo;
+  capabilities: ConversationCapabilities;
 }

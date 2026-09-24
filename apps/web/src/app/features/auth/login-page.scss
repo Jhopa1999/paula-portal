@@ -1,0 +1,91 @@
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #1f2933;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 2rem 2.25rem;
+  width: 360px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+
+  h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #1f2933;
+  }
+
+  .subtitle {
+    margin: 0.25rem 0 1.25rem;
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+
+  .error {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+
+  .muted {
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+}
+
+.users {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.user-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .name {
+    font-weight: 600;
+    color: #1f2933;
+  }
+
+  .role {
+    font-size: 0.75rem;
+    color: #6d28d9;
+    text-transform: uppercase;
+  }
+}
+
+.hint {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-align: center;
+}

@@ -1,0 +1,34 @@
+<div class="login">
+  <div class="card">
+    <h1>Paula</h1>
+    <p class="subtitle">Portal de atencion — acceso (DEV)</p>
+
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
+    @if (users().length === 0 && !error()) {
+      <p class="muted">Cargando usuarios...</p>
+    }
+
+    <ul class="users">
+      @for (u of users(); track u.id) {
+        <li>
+          <button
+            type="button"
+            class="user-btn"
+            [disabled]="loading()"
+            (click)="loginAs(u.id)"
+          >
+            <span class="name">{{ u.name }}</span>
+            <span class="role">{{ u.roles.join(', ') }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <p class="hint">
+      Este acceso simulado se reemplaza por Cognito/OIDC en produccion.
+    </p>
+  </div>
+</div>

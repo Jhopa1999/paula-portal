@@ -7,13 +7,19 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { correlationIdInterceptor } from './core/http/correlation-id.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
+import { authInterceptor } from './core/auth/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([correlationIdInterceptor, errorInterceptor]),
+      // Orden: correlation id -> token -> manejo de errores.
+      withInterceptors([
+        correlationIdInterceptor,
+        authInterceptor,
+        errorInterceptor,
+      ]),
     ),
   ],
 };
