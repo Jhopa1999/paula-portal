@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
-  // Se inyecta por ambiente en el despliegue (CloudFront/config).
+  // Ruta relativa: el frontend se sirve desde el mismo servidor NestJS,
+  // por lo que la API y el WebSocket comparten origen (mismo host y puerto).
   apiBaseUrl: '/api/v1',
 };

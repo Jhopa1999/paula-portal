@@ -17,7 +17,13 @@ import { RealtimeDispatcher } from './realtime.dispatcher';
  */
 @WebSocketGateway({
   namespace: '/realtime',
-  cors: { origin: process.env.CORS_ORIGIN ?? 'http://localhost:4200' },
+  cors: {
+    // Admite uno o varios origenes separados por coma (ej. Firebase + localhost).
+    origin: (process.env.CORS_ORIGIN ?? 'http://localhost:4200')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  },
 })
 export class RealtimeGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit

@@ -30,3 +30,7 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Firebase
+.firebase/
+firebase-debug.log*
